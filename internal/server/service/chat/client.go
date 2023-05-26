@@ -45,6 +45,11 @@ func (c *Client) Read() {
 		if err != nil {
 			log.Println("ReadMessage error:", err)
 			GetManager().UnregisterClient(c)
+			var body api.Body
+			body.Data.Uuid = "system"
+			body.Data.Time = mtime.Now()
+			body.Data.Msg = c.uuid + " logout"
+			GetManager().Broadcast(body.Marshal())
 			c.Destroy()
 			return
 		}
@@ -68,6 +73,11 @@ func (c *Client) Write() {
 }
 
 func (c *Client) Send(msg []byte) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("send err: ", err)
+		}
+	}()
 	c.send <- msg
 }
 

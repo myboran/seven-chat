@@ -56,8 +56,8 @@ func (m *Manager) EventUnregister(client *Client) {
 }
 
 func (m *Manager) EventBroadcast(msg []byte) {
-	for _, v := range m.clients {
-		v.Send(msg)
+	for i := range m.clients {
+		go m.clients[i].Send(msg)
 	}
 }
 

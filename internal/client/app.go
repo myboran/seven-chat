@@ -15,16 +15,13 @@ var (
 )
 
 func NewClient() {
-	flag.StringVar(&addr, "addr", "", "server addr: x.x.x.x:xxx")
+	flag.StringVar(&addr, "addr", "127.0.0.1:7777", "server addr: x.x.x.x:xxx")
 	flag.Parse()
-	if addr == "" {
-		fmt.Println("please entry -help")
-		return
-	}
 	u := url.URL{Scheme: "ws", Host: addr, Path: "/ws"}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		fmt.Println("connect websocket server err: ", err)
+		fmt.Println("please entry -help")
 		return
 	}
 	exit := make(chan struct{})
