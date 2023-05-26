@@ -2,10 +2,10 @@ package chat
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/myboran/seven-chat/pkg/api"
+	"github.com/myboran/seven-chat/pkg/mtime"
 	"log"
 )
 
@@ -25,6 +25,11 @@ func NewClient(addr string, conn *websocket.Conn) *Client {
 	}
 	go client.Read()
 	go client.Write()
+	var body api.Body
+	body.Data.Time = mtime.Now()
+	body.Data.Uuid = "system"
+	body.Data.Msg = client.uuid + " login"
+	client.Send(body.Marshal())
 	return client
 }
 
@@ -67,16 +72,18 @@ func (c *Client) Send(msg []byte) {
 }
 
 func (c *Client) Process(msg []byte) {
-	var req api.WSRequest
+	var req api.Body
 	err := json.Unmarshal(msg, &req)
 	if err != nil {
 		log.Println("process Unmarshal err: ", err, "msg: ", string(msg))
 	}
 	switch req.Type {
-	case api.TypeSendMsg:
-		msg = []byte(fmt.Sprintf("%s %s: %s", req.Data.Time, req.Data.Uuid, req.Data.Msg))
-		GetManager().Broadcast(msg)
+	case api.TypeSend:
+		req.Data.Uuid = c.uuid
+		GetManager().Broadcast(req.Marshal())
 	default:
-		c.Send([]byte("非法请求"))
+		req.Data.Uuid = "system"
+		req.Data.Msg = "非法参数"
+		c.Send(req.Marshal())
 	}
 }

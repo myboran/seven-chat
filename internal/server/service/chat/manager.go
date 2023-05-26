@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"github.com/myboran/seven-chat/pkg/api"
+	"github.com/myboran/seven-chat/pkg/mtime"
 	"sync"
 )
 
@@ -33,6 +35,11 @@ func (m *Manager) Start() {
 		select {
 		case client := <-m.register:
 			m.EventRegister(client)
+			var body api.Body
+			body.Data.Time = mtime.Now()
+			body.Data.Uuid = "system"
+			body.Data.Msg = "welcome " + client.uuid
+			m.EventBroadcast(body.Marshal())
 		case client := <-m.unregister:
 			m.EventUnregister(client)
 		case msg := <-m.broadcast:
